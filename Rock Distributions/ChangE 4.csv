@@ -1,0 +1,3 @@
+Distribution,Name,Type,k,l,Minimum Rock Diameter Sampled (m),Maximum Rock Diameter Sampled (m),H to D ratio,b to D ratio,Additional Info
+Chang'E 4,CE4,Exponential,0.0021,6.55527619,0.05,1.533,0.31,NaN,Resolution for the Chang'E 3 experiment was 5cm. So there were likely many more rocks much smaller than 5cm
+,,,,,,,0.203,,
