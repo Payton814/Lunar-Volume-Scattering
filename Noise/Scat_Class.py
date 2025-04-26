@@ -17,10 +17,10 @@ class Efield:
         ## The way I currently am running the XF sims, the main pulse is oriented in the x-direction
         ## Want to get an interpolation of the data so that from sim to sim if theres any variance in the sampled times we
         ## can be comparing data at the right time.
-        if (Eavg != None):
-            self.Eavg_i = Eavg
-        else:
+        if Eavg is None:
             self.Eavg_i = self.Empty
+        else:
+            self.Eavg_i = Eavg
         self.Ex_i = np.interp(tns, df['Time (ns)'], self.E[0])
         self.Ey_i = np.interp(tns, df['Time (ns)'], self.E[1])
         self.Ez_i = np.interp(tns, df['Time (ns)'], self.E[2])

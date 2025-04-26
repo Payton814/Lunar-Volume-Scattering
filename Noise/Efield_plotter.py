@@ -22,9 +22,9 @@ fig, axs = plt.subplots(2, 1, sharex = True)
 Ex = []
 Noise = []
 Noise_xpol = []
-for ii in range(1):
-    N = Efield(data_list[ii])
-    #axs[0].plot(N.t, N.getNoise())
+for ii in range(len(data_list)):
+    N = Efield(data_list[ii], Eavg = None)
+    axs[0].plot(N.t, N.getNoise(), linestyle = ':')
     Noise.append(N.getNoiseEnv())
     Noise_xpol.append(N.getNoiseEnv(xpol = True))
     Ex.append(N.Ex_i)
@@ -34,10 +34,11 @@ Ex = np.array(Ex)
 Noise = np.array(Noise)
 Noise_xpol = np.array(Noise_xpol)
 mean_env = np.mean(Noise, axis = 0)
+env_std = np.std(Noise, axis = 0)
 mean_env_xpol = np.mean(Noise_xpol, axis = 0)
 
-#axs[0].plot(N.t, N.Empty, label = "Empty Cavity")
-axs[0].plot(N.t, np.mean(Ex, axis=0), label = 'Attenuated Signal')
+axs[0].plot(N.t, N.Empty, label = "Empty Cavity")
+axs[0].plot(N.t, Exavg, label = 'Attenuated Signal')
 axs[0].plot(N.t, mean_env, color = 'k', label = 'co-pol envelope')
 axs[0].plot(N.t, mean_env_xpol, color = 'r', label = 'x-pol envelope', linestyle = '--')
 axs[1].plot(N.t, mean_env_xpol, color = 'k', label = 'x-pol envelope', linestyle = '-')
