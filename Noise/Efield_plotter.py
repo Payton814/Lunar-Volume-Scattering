@@ -2,44 +2,74 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.signal import hilbert
-from Scat_Class import Efield
+from Scat_ClassV2 import Efield
 import glob
 
-data_list = glob.glob('./VolScatNoiseData/CE4/0.05to2D_5a5b10d/*.csv')
-#print(data_list)
+data_list = glob.glob('./VolScatNoiseData/SVII/5a5b10d_randOri_1nsMG_WG/*.csv')
+#data_list = glob.glob('./VolScatNoiseData/0.4D_400/*.csv')
+data_list = glob.glob('./VolScatNoiseData/PEC_0.05D_20DL_1nsMG/*.csv')
+data_list = glob.glob('./VolScatNoiseData/PEC_0.05D_20DL_1nsMG_WG/*.csv')
 
-Ex = []
+data_list = glob.glob('./VolScatNoiseData/Rock_0.05D_10DL_3000Rocks_1nsMG/*.csv')
+data_list = glob.glob('./VolScatNoiseData/Rock_005D_20Dl_4000Rocks_1nsMG_WG/*.csv')
+data_list = glob.glob('./VolScatNoiseData/0.04to2D_5a5b10d_RandOri_PBC/*.csv')
+#data_list = glob.glob('./VolScatNoiseData/SVII/5a5b10d_randOri_1nsMG_FreeSpace/*.csv')
+print(data_list)
+
+dfmf = pd.read_csv('./VolScatNoiseData/Empty_10d_Broadband.csv')
+Exmf = np.array(dfmf['Total E x (V/m)'])
+tmf = np.array(dfmf['Time (ns)'])
+tns = np.linspace(0, 300, 10000)
+mf = np.flip(np.interp(tns, tmf, Exmf))
+MATCHEDFILT = False
+Ecopol = []
 for ii in range(len(data_list)):
     df = pd.read_csv(data_list[ii])
     tns = np.linspace(0, 300, 10000)
-    np.interp(tns, df['Time (ns)'], df['Total E x (V/m)'])
-    print(len(df['Total E x (V/m)']))
-    Ex.append(np.interp(tns, df['Time (ns)'], df['Total E x (V/m)']))
+    #plt.plot(tns, np.interp(tns, df['Time (ns)'], df['Total E x (V/m)']))
+    #print(len(df['Total E x (V/m)']))
+    if (np.max(np.array(df['Total E x (V/m)'])) > np.max(np.array(df['Total E y (V/m)']))):
+        if (MATCHEDFILT == True):
+            Ecopol.append(np.convolve(np.interp(tns, df['Time (ns)'], df['Total E x (V/m)']), mf, mode = 'same'))
+        else:
+            Ecopol.append(np.interp(tns, df['Time (ns)'], df['Total E x (V/m)']))
+    else:
+        Ecopol.append(np.interp(tns, df['Time (ns)'], df['Total E y (V/m)']))
 
-Exavg = np.mean(Ex, axis = 0)
+Ecpavg = np.mean(Ecopol, axis = 0)
 
 fig, axs = plt.subplots(2, 1, sharex = True)
-Ex = []
+Ecopol = []
 Noise = []
 Noise_xpol = []
 for ii in range(len(data_list)):
-    N = Efield(data_list[ii], Eavg = None)
-    axs[0].plot(N.t, N.getNoise(), linestyle = ':')
+    N = Efield(data_list[ii], Eavg = Ecpavg, matchedFilt = MATCHEDFILT)
+    #plt.plot(N.getFFT()[1], N.getFFT()[0])
+    #axs[0].plot(N.t, N.getNoise(), linestyle = ':')
     Noise.append(N.getNoiseEnv())
     Noise_xpol.append(N.getNoiseEnv(xpol = True))
-    Ex.append(N.Ex_i)
-    axs[0].plot(N.t, N.getNoiseEnv(), linestyle = '--')
-    axs[1].plot(N.t, N.Ey_i)
-Ex = np.array(Ex)
+    Ecopol.append(N.Ecopol_i)
+    #axs[0].plot(N.t, N.getNoiseEnv(), linestyle = '--')
+    #axs[1].plot(N.t, N.Ey_i)
+Ex = np.array(Ecopol)
 Noise = np.array(Noise)
 Noise_xpol = np.array(Noise_xpol)
 mean_env = np.mean(Noise, axis = 0)
 env_std = np.std(Noise, axis = 0)
 mean_env_xpol = np.mean(Noise_xpol, axis = 0)
+env_xpol_std = np.std(Noise_xpol, axis = 0)
 
-axs[0].plot(N.t, N.Empty, label = "Empty Cavity")
-axs[0].plot(N.t, Exavg, label = 'Attenuated Signal')
+SNR = np.max(np.abs(N.Eavg_i))**2/np.max(mean_env)**2
+print("E amplitude: ", np.max(np.abs(Ecpavg)))
+print("Noise Amplitude: ", np.max(mean_env))
+print("SNR: ", SNR)
+
+#axs[0].plot(N.t, N.Empty, label = "Empty Cavity")
+axs[0].plot(N.t, N.Eavg_i, label = 'Attenuated Signal')
+#axs[0].fill_between(N.t,mean_env - env_std, mean_env + env_std, color = 'k', alpha = 0.5)
 axs[0].plot(N.t, mean_env, color = 'k', label = 'co-pol envelope')
+
+#axs[0].fill_between(N.t,mean_env_xpol - env_xpol_std, mean_env_xpol + env_xpol_std, color = 'r', alpha = 0.5)
 axs[0].plot(N.t, mean_env_xpol, color = 'r', label = 'x-pol envelope', linestyle = '--')
 axs[1].plot(N.t, mean_env_xpol, color = 'k', label = 'x-pol envelope', linestyle = '-')
 
