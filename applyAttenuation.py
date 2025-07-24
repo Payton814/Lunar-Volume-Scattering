@@ -7,7 +7,8 @@ from scipy.interpolate import UnivariateSpline
 dfmatlab = np.array(pd.read_csv('./Noise/VolScatNoiseData/Mie_CE3_Cuboid.csv').iloc[:, 0])
 fm = np.arange(0, 1.2, 0.001)
 
-
+## Distance wave has travelled through rocks
+d = 8
 
 dfref = pd.read_csv('./Noise/VolScatNoiseData/CE3_Donut_5ro_3ri_8x0y2.5z_ref.csv')
 Ey = np.array(dfref.iloc[:, 3])
@@ -53,11 +54,11 @@ plt.plot(freq[:fend], np.abs(10**(Pmat_interp/20)*fE[:fend]), linestyle = '--')
 
 plt.show()
 
-ifE = np.fft.ifft(fE*10**(Pmat/20))
+ifE = np.fft.ifft(fE*10**(d*Pmat/20))
 print(len(ifE))
-plt.plot(ifE)
-plt.plot(np.fft.ifft(fE))
-plt.plot(Ey, linestyle = '--')
+plt.plot(t, ifE.real)
+plt.plot(t, np.fft.ifft(fE).real)
+plt.plot(t, Ey, linestyle = '--')
 plt.show()
 
 #print(len(freq))
